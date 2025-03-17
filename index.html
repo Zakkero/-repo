@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Электрик помощник ver. 1.0_o</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #2c3e50; }
+        .menu-container { margin: 20px 0; }
+        .menu-select { 
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .input-section { display: none; margin-top: 20px; }
+        .input-group { margin: 15px 0; }
+        .input-group label { display: block; margin-bottom: 5px; }
+        .input-group input { 
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+        }
+        .result { 
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .error { color: #e74c3c; }
+        button {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Электрик помощник ver. 4.1.3</h1>
+        
+        <div class="menu-container">
+            <select class="menu-select" onchange="showSection(this.value)">
+                <option value="">Выберите расчет</option>
+                <option value="voltage-drop">Падение напряжения</option>
+                <option value="cable-section">Сечение кабеля</option>
+                <option value="max-current">Максимальный ток</option>
+                <option value="power">Мощность</option>
+                <option value="cable-length">Длина кабеля</option>
+                <option value="heat-loss">Тепловые потери</option>
+                <option value="impedance">Импеданс</option>
+                <option value="reactive-power">Реактивная мощность</option>
+                <option value="power-factor">Коэффициент мощности</option>
+                <option value="energy-cost">Стоимость энергии</option>
+                <option value="three-phase-power">Трехфазная мощность</option>
+                <option value="three-phase-reactive">Трехфазная реактивная</option>
+                <option value="three-phase-apparent">Трехфазная полная</option>
+                <option value="three-phase-energy">Трехфазная стоимость</option>
+                <option value="cable-resistance">Сопротивление кабеля</option>
+                <option value="cable-inductance">Индуктивность кабеля</option>
+                <option value="cable-losses">Потери в кабеле</option>
+                <option value="standard-check">Проверка стандарта</option>
+            </select>
+        </div>
+
+        <!-- Падение напряжения -->
+        <div id="voltage-drop" class="input-section">
+            <h2>Падение напряжения</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="vd-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="vd-current" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Длина (м):</label>
+                <input type="number" id="vd-length" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Сопротивление/м (Ом/м):</label>
+                <input type="number" id="vd-resistance" min="0" step="0.0001">
+            </div>
+            <button onclick="calculate('voltage-drop')">Рассчитать</button>
+            <div class="result" id="vd-result"></div>
+        </div>
+
+        <!-- Сечение кабеля -->
+        <div id="cable-section" class="input-section">
+            <h2>Сечение кабеля</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="cs-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="cs-current" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Длина (м):</label>
+                <input type="number" id="cs-length" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Макс. падение (%)</label>
+                <input type="number" id="cs-max-drop" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Удельное сопротивление (Ом·м)</label>
+                <input type="number" id="cs-resistivity" min="0" step="0.000001">
+            </div>
+            <button onclick="calculate('cable-section')">Рассчитать</button>
+            <div class="result" id="cs-result"></div>
+        </div>
+
+        <!-- Максимальный ток -->
+        <div id="max-current" class="input-section">
+            <h2>Максимальный ток</h2>
+            <div class="input-group">
+                <label>Сечение (м²):</label>
+                <input type="number" id="mc-section" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Удельное сопротивление (Ом·м):</label>
+                <input type="number" id="mc-resistivity" min="0" step="0.000001">
+            </div>
+            <div class="input-group">
+                <label>Макс. нагрев (°C):</label>
+                <input type="number" id="mc-temp-rise" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('max-current')">Рассчитать</button>
+            <div class="result" id="mc-result"></div>
+        </div>
+
+        <!-- Мощность -->
+        <div id="power" class="input-section">
+            <h2>Мощность</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="p-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="p-current" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('power')">Рассчитать</button>
+            <div class="result" id="p-result"></div>
+        </div>
+
+        <!-- Длина кабеля -->
+        <div id="cable-length" class="input-section">
+            <h2>Длина кабеля</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="cl-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="cl-current" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Макс. падение (%)</label>
+                <input type="number" id="cl-max-drop" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Сопротивление/м (Ом/м):</label>
+                <input type="number" id="cl-resistance" min="0" step="0.0001">
+            </div>
+            <button onclick="calculate('cable-length')">Рассчитать</button>
+            <div class="result" id="cl-result"></div>
+        </div>
+
+        <!-- Тепловые потери -->
+        <div id="heat-loss" class="input-section">
+            <h2>Тепловые потери</h2>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="hl-current" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Сопротивление (Ом):</label>
+                <input type="number" id="hl-resistance" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('heat-loss')">Рассчитать</button>
+            <div class="result" id="hl-result"></div>
+        </div>
+
+        <!-- Импеданс -->
+        <div id="impedance" class="input-section">
+            <h2>Импеданс</h2>
+            <div class="input-group">
+                <label>Сопротивление (Ом):</label>
+                <input type="number" id="i-resistance" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Индуктивность (Гн):</label>
+                <input type="number" id="i-inductance" min="0" step="0.000001">
+            </div>
+            <div class="input-group">
+                <label>Частота (Гц):</label>
+                <input type="number" id="i-frequency" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('impedance')">Рассчитать</button>
+            <div class="result" id="i-result"></div>
+        </div>
+
+        <!-- Реактивная мощность -->
+        <div id="reactive-power" class="input-section">
+            <h2>Реактивная мощность</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="rp-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="rp-current" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Коэф. мощности (0-1):</label>
+                <input type="number" id="rp-pf" min="0" max="1" step="0.01">
+            </div>
+            <button onclick="calculate('reactive-power')">Рассчитать</button>
+            <div class="result" id="rp-result"></div>
+        </div>
+
+        <!-- Коэффициент мощности -->
+        <div id="power-factor" class="input-section">
+            <h2>Коэффициент мощности</h2>
+            <div class="input-group">
+                <label>Активная мощность (Вт):</label>
+                <input type="number" id="pf-active" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Полная мощность (ВА):</label>
+                <input type="number" id="pf-apparent" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('power-factor')">Рассчитать</button>
+            <div class="result" id="pf-result"></div>
+        </div>
+
+        <!-- Стоимость энергии -->
+        <div id="energy-cost" class="input-section">
+            <h2>Стоимость энергии</h2>
+            <div class="input-group">
+                <label>Мощность (Вт):</label>
+                <input type="number" id="ec-power" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Время (ч):</label>
+                <input type="number" id="ec-hours" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Тариф (руб/кВт·ч):</label>
+                <input type="number" id="ec-rate" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('energy-cost')">Рассчитать</button>
+            <div class="result" id="ec-result"></div>
+        </div>
+
+        <!-- Трехфазная мощность -->
+        <div id="three-phase-power" class="input-section">
+            <h2>Трехфазная мощность</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="tp-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="tp-current" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('three-phase-power')">Рассчитать</button>
+            <div class="result" id="tp-result"></div>
+        </div>
+
+        <!-- Трехфазная реактивная -->
+        <div id="three-phase-reactive" class="input-section">
+            <h2>Трехфазная реактивная</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="tpr-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="tpr-current" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Коэф. мощности (0-1):</label>
+                <input type="number" id="tpr-pf" min="0" max="1" step="0.01">
+            </div>
+            <button onclick="calculate('three-phase-reactive')">Рассчитать</button>
+            <div class="result" id="tpr-result"></div>
+        </div>
+
+        <!-- Трехфазная полная -->
+        <div id="three-phase-apparent" class="input-section">
+            <h2>Трехфазная полная</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="tpa-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="tpa-current" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('three-phase-apparent')">Рассчитать</button>
+            <div class="result" id="tpa-result"></div>
+        </div>
+
+        <!-- Трехфазная стоимость -->
+        <div id="three-phase-energy" class="input-section">
+            <h2>Трехфазная стоимость</h2>
+            <div class="input-group">
+                <label>Мощность (Вт):</label>
+                <input type="number" id="tpe-power" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Время (ч):</label>
+                <input type="number" id="tpe-hours" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Тариф (руб/кВт·ч):</label>
+                <input type="number" id="tpe-rate" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('three-phase-energy')">Рассчитать</button>
+            <div class="result" id="tpe-result"></div>
+        </div>
+
+        <!-- Сопротивление кабеля -->
+        <div id="cable-resistance" class="input-section">
+            <h2>Сопротивление кабеля</h2>
+            <div class="input-group">
+                <label>Длина (м):</label>
+                <input type="number" id="cr-length" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Удельное сопротивление (Ом·м):</label>
+                <input type="number" id="cr-resistivity" min="0" step="0.000001">
+            </div>
+            <button onclick="calculate('cable-resistance')">Рассчитать</button>
+            <div class="result" id="cr-result"></div>
+        </div>
+
+        <!-- Индуктивность кабеля -->
+        <div id="cable-inductance" class="input-section">
+            <h2>Индуктивность кабеля</h2>
+            <div class="input-group">
+                <label>Длина (м):</label>
+                <input type="number" id="ci-length" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Индуктивность/м (Гн/м):</label>
+                <input type="number" id="ci-inductivity" min="0" step="0.000001">
+            </div>
+            <button onclick="calculate('cable-inductance')">Рассчитать</button>
+            <div class="result" id="ci-result"></div>
+        </div>
+
+        <!-- Потери в кабеле -->
+        <div id="cable-losses" class="input-section">
+            <h2>Потери в кабеле</h2>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="clo-current" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Сопротивление (Ом):</label>
+                <input type="number" id="clo-resistance" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('cable-losses')">Рассчитать</button>
+            <div class="result" id="clo-result"></div>
+        </div>
+
+        <!-- Проверка стандарта -->
+        <div id="standard-check" class="input-section">
+            <h2>Проверка стандарта</h2>
+            <div class="input-group">
+                <label>Напряжение (В):</label>
+                <input type="number" id="sc-voltage" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Ток (А):</label>
+                <input type="number" id="sc-current" min="0" step="0.01">
+            </div>
+            <button onclick="calculate('standard-check')">Проверить</button>
+            <div class="result" id="sc-result"></div>
+        </div>
+
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            document.querySelectorAll('.input-section').forEach(sec => sec.style.display = 'none');
+            if(sectionId) document.getElementById(sectionId).style.display = 'block';
+        }
+
+        function validateInput(...inputs) {
+            return inputs.every(input => {
+                input.style.borderColor = '';
+                if(input.value === '' || isNaN(input.value)) {
+                    input.style.borderColor = '#e74c3c';
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        function calculate(section) {
+            const format = (num) => isNaN(num) ? 'Ошибка' : num.toFixed(2);
+            
+            switch(section) {
+                case 'voltage-drop':
+                    const vdVoltage = parseFloat(document.getElementById('vd-voltage').value);
+                    const vdCurrent = parseFloat(document.getElementById('vd-current').value);
+                    const vdLength = parseFloat(document.getElementById('vd-length').value);
+                    const vdResistance = parseFloat(document.getElementById('vd-resistance').value);
+
+                    if(!validateInput(
+                        document.getElementById('vd-voltage'),
+                        document.getElementById('vd-current'),
+                        document.getElementById('vd-length'),
+                        document.getElementById('vd-resistance')
+                    )) return;
+
+                    const totalResistance = vdResistance * vdLength;
+                    const voltageDrop = vdCurrent * totalResistance;
+                    const percentage = (voltageDrop / vdVoltage) * 100;
+
+                    document.getElementById('vd-result').innerHTML = 
+                        `Падение: ${format(voltageDrop)} В (${format(percentage)}%)`;
+                    break;
+
+                case 'cable-section':
+                    const csVoltage = parseFloat(document.getElementById('cs-voltage').value);
+                    const csCurrent = parseFloat(document.getElementById('cs-current').value);
+                    const csLength = parseFloat(document.getElementById('cs-length').value);
+                    const csMaxDrop = parseFloat(document.getElementById('cs-max-drop').value);
+                    const csResistivity = parseFloat(document.getElementById('cs-resistivity').value);
+
+                    if(!validateInput(
+                        document.getElementById('cs-voltage'),
+                        document.getElementById('cs-current'),
+                        document.getElementById('cs-length'),
+                        document.getElementById('cs-max-drop'),
+                        document.getElementById('cs-resistivity')
+                    )) return;
+
+                    const maxVoltageDrop = (csMaxDrop / 100) * csVoltage;
+                    const resistanceTotal = maxVoltageDrop / csCurrent;
+                    const sectionValue = (resistanceTotal / csLength) / csResistivity;
+
+                    document.getElementById('cs-result').innerHTML = 
+                        `Сечение: ${format(sectionValue)} м²`;
+                    break;
+
+                case 'max-current':
+                    const mcSection = parseFloat(document.getElementById('mc-section').value);
+                    const mcResistivity = parseFloat(document.getElementById('mc-resistivity').value);
+                    const mcTempRise = parseFloat(document.getElementById('mc-temp-rise').value);
+
+                    if(!validateInput(
+                        document.getElementById('mc-section'),
+                        document.getElementById('mc-resistivity'),
+                        document.getElementById('mc-temp-rise')
+                    )) return;
+
+                    const maxCurrent = (mcSection / mcResistivity) * mcTempRise;
+
+                    document.getElementById('mc-result').innerHTML = 
+                        `Максимальный ток: ${format(maxCurrent)} А`;
+                    break;
+
+                case 'power':
+                    const pVoltage = parseFloat(document.getElementById('p-voltage').value);
+                    const pCurrent = parseFloat(document.getElementById('p-current').value);
+
+                    if(!validateInput(
+                        document.getElementById('p-voltage'),
+                        document.getElementById('p-current')
+                    )) return;
+
+                    const power = pVoltage * pCurrent;
+
+                    document.getElementById('p-result').innerHTML = 
+                        `Мощность: ${format(power)} Вт`;
+                    break;
+
+                case 'cable-length':
+                    const clVoltage = parseFloat(document.getElementById('cl-voltage').value);
+                    const clCurrent = parseFloat(document.getElementById('cl-current').value);
+                    const clMaxDrop = parseFloat(document.getElementById('cl-max-drop').value);
+                    const clResistance = parseFloat(document.getElementById('cl-resistance').value);
+
+                    if(!validateInput(
+                        document.getElementById('cl-voltage'),
+                        document.getElementById('cl-current'),
+                        document.getElementById('cl-max-drop'),
+                        document.getElementById('cl-resistance')
+                    )) return;
+
+                    const maxVD = (clMaxDrop / 100) * clVoltage;
+                    const maxR = maxVD / clCurrent;
+                    const length = maxR / clResistance;
+
+                    document.getElementById('cl-result').innerHTML = 
+                        `Длина: ${format(length)} м`;
+                    break;
+
+                case 'heat-loss':
+                    const hlCurrent = parseFloat(document.getElementById('hl-current').value);
+                    const hlResistance = parseFloat(document.getElementById('hl-resistance').value);
+
+                    if(!validateInput(
+                        document.getElementById('hl-current'),
+                        document.getElementById('hl-resistance')
+                    )) return;
+
+                    const heatLoss = hlCurrent ** 2 * hlResistance;
+
+                    document.getElementById('hl-result').innerHTML = 
+                        `Потери: ${format(heatLoss)} Вт`;
+                    break;
+
+                case 'impedance':
+                    const iResistance = parseFloat(document.getElementById('i-resistance').value);
+                    const iInductance = parseFloat(document.getElementById('i-inductance').value);
+                    const iFrequency = parseFloat(document.getElementById('i-frequency').value);
+
+                    if(!validateInput(
+                        document.getElementById('i-resistance'),
+                        document.getElementById('i-inductance'),
+                        document.getElementById('i-frequency')
+                    )) return;
+
+                    const reactance = 2 * Math.PI * iFrequency * iInductance;
+                    const impedance = Math.sqrt(iResistance**2 + reactance**2);
+
+                    document.getElementById('i-result').innerHTML = 
+                        `Импеданс: ${format(impedance)} Ом`;
+                    break;
+
+                case 'reactive-power':
+                    const rpVoltage = parseFloat(document.getElementById('rp-voltage').value);
+                    const rpCurrent = parseFloat(document.getElementById('rp-current').value);
+                    const rpPf = parseFloat(document.getElementById('rp-pf').value);
+
+                    if(!validateInput(
+                        document.getElementById('rp-voltage'),
+                        document.getElementById('rp-current'),
+                        document.getElementById('rp-pf')
+                    ) || rpPf < 0 || rpPf > 1) {
+                        document.getElementById('rp-result').innerHTML = 
+                            '<span class="error">Коэффициент должен быть 0-1</span>';
+                        return;
+                    }
+
+                    const reactivePower = rpVoltage * rpCurrent * Math.sqrt(1 - rpPf**2);
+
+                    document.getElementById('rp-result').innerHTML = 
+                        `Реактивная: ${format(reactivePower)} ВАр`;
+                    break;
+
+                case 'power-factor':
+                    const pfActive = parseFloat(document.getElementById('pf-active').value);
+                    const pfApparent = parseFloat(document.getElementById('pf-apparent').value);
+
+                    if(!validateInput(
+                        document.getElementById('pf-active'),
+                        document.getElementById('pf-apparent')
+                    ) || pfApparent === 0) {
+                        document.getElementById('pf-result').innerHTML = 
+                            '<span class="error">Полная мощность не может быть 0</span>';
+                        return;
+                    }
+
+                    const powerFactor = pfActive / pfApparent;
+
+                    document.getElementById('pf-result').innerHTML = 
+                        `Коэффициент: ${format(powerFactor)}`;
+                    break;
+
+                case 'energy-cost':
+                    const ecPower = parseFloat(document.getElementById('ec-power').value);
+                    const ecHours = parseFloat(document.getElementById('ec-hours').value);
+                    const ecRate = parseFloat(document.getElementById('ec-rate').value);
+
+                    if(!validateInput(
+                        document.getElementById('ec-power'),
+                        document.getElementById('ec-hours'),
+                        document.getElementById('ec-rate')
+                    )) return;
+
+                    const energyCost = (ecPower * ecHours / 1000) * ecRate;
+
+                    document.getElementById('ec-result').innerHTML = 
+                        `Стоимость: ${format(energyCost)} руб`;
+                    break;
+
+                case 'three-phase-power':
+                    const tpVoltage = parseFloat(document.getElementById('tp-voltage').value);
+                    const tpCurrent = parseFloat(document.getElementById('tp-current').value);
+
+                    if(!validateInput(
+                        document.getElementById('tp-voltage'),
+                        document.getElementById('tp-current')
+                    )) return;
+
+                    const threePhasePower = Math.sqrt(3) * tpVoltage * tpCurrent;
+
+                    document.getElementById('tp-result').innerHTML = 
+                        `Мощность: ${format(threePhasePower)} Вт`;
+                    break;
+
+                case 'three-phase-reactive':
+                    const tprVoltage = parseFloat(document.getElementById('tpr-voltage').value);
+                    const tprCurrent = parseFloat(document.getElementById('tpr-current').value);
+                    const tprPf = parseFloat(document.getElementById('tpr-pf').value);
+
+                    if(!validateInput(
+                        document.getElementById('tpr-voltage'),
+                        document.getElementById('tpr-current'),
+                        document.getElementById('tpr-pf')
+                    ) || tprPf < 0 || tprPf > 1) {
+                        document.getElementById('tpr-result').innerHTML = 
+                            '<span class="error">Коэффициент должен быть 0-1</span>';
+                        return;
+                    }
+
+                    const threePhaseReactive = Math.sqrt(3) * tprVoltage * tprCurrent * Math.sqrt(1 - tprPf**2);
+
+                    document.getElementById('tpr-result').innerHTML = 
+                        `Реактивная: ${format(threePhaseReactive)} ВАр`;
+                    break;
+
+                case 'three-phase-apparent':
+                    const tpaVoltage = parseFloat(document.getElementById('tpa-voltage').value);
+                    const tpaCurrent = parseFloat(document.getElementById('tpa-current').value);
+
+                    if(!validateInput(
+                        document.getElementById('tpa-voltage'),
+                        document.getElementById('tpa-current')
+                    )) return;
+
+                    const threePhaseApparent = Math.sqrt(3) * tpaVoltage * tpaCurrent;
+
+                    document.getElementById('tpa-result').innerHTML = 
+                        `Полная: ${format(threePhaseApparent)} ВА`;
+                    break;
+
+                case 'three-phase-energy':
+                    const tpePower = parseFloat(document.getElementById('tpe-power').value);
+                    const tpeHours = parseFloat(document.getElementById('tpe-hours').value);
+                    const tpeRate = parseFloat(document.getElementById('tpe-rate').value);
+
+                    if(!validateInput(
+                        document.getElementById('tpe-power'),
+                        document.getElementById('tpe-hours'),
+                        document.getElementById('tpe-rate')
+                    )) return;
+
+                    const threePhaseEnergyCost = (tpePower * tpeHours / 1000) * tpeRate;
+
+                    document.getElementById('tpe-result').innerHTML = 
+                        `Стоимость: ${format(threePhaseEnergyCost)} руб`;
+                    break;
+
+                case 'cable-resistance':
+                    const crLength = parseFloat(document.getElementById('cr-length').value);
+                    const crResistivity = parseFloat(document.getElementById('cr-resistivity').value);
+
+                    if(!validateInput(
+                        document.getElementById('cr-length'),
+                        document.getElementById('cr-resistivity')
+                    )) return;
+
+                    const cableResistance = crLength * crResistivity;
+
+                    document.getElementById('cr-result').innerHTML = 
+                        `Сопротивление: ${format(cableResistance)} Ом`;
+                    break;
+
+                case 'cable-inductance':
+                    const ciLength = parseFloat(document.getElementById('ci-length').value);
+                    const ciInductivity = parseFloat(document.getElementById('ci-inductivity').value);
+
+                    if(!validateInput(
+                        document.getElementById('ci-length'),
+                        document.getElementById('ci-inductivity')
+                    )) return;
+
+                    const cableInductance = ciLength * ciInductivity;
+
+                    document.getElementById('ci-result').innerHTML = 
+                        `Индуктивность: ${format(cableInductance)} Гн`;
+                    break;
+
+                case 'cable-losses':
+                    const cloCurrent = parseFloat(document.getElementById('clo-current').value);
+                    const cloResistance = parseFloat(document.getElementById('clo-resistance').value);
+
+                    if(!validateInput(
+                        document.getElementById('clo-current'),
+                        document.getElementById('clo-resistance')
+                    )) return;
+
+                    const cableLosses = cloCurrent ** 2 * cloResistance;
+
+                    document.getElementById('clo-result').innerHTML = 
+                        `Потери: ${format(cableLosses)} Вт`;
+                    break;
+
+                case 'standard-check':
+                    const scVoltage = parseFloat(document.getElementById('sc-voltage').value);
+                    const scCurrent = parseFloat(document.getElementById('sc-current').value);
+
+                    if(!validateInput(
+                        document.getElementById('sc-voltage'),
+                        document.getElementById('sc-current')
+                    )) return;
+
+                    let errors = [];
+                    if(scVoltage < 220) errors.push("Низкое напряжение");
+                    if(scCurrent > 16) errors.push("Высокий ток");
+                    if(scCurrent < 0.5) errors.push("Низкий ток");
+
+                    document.getElementById('sc-result').innerHTML = 
+                        errors.length > 0 
+                            ? `<span class="error">${errors.join(', ')}</span>`
+                            : "Соответствует стандартам";
+                    break;
+            }
+        }
+
+        // Инициализация
+        document.querySelector('.menu-select').value = '';
+    </script>
+</body>
+  </html>
